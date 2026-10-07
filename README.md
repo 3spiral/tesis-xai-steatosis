@@ -215,6 +215,45 @@ Genera:
 metadata/BEHSOF_manifest.csv
 metadata/BEH_patient_folds.csv
 ```
+#### Diccionario de datos de `BEHSOF_manifest.csv`
+
+`BEHSOF_manifest.csv` constituye el manifest maestro del dataset BEHSOF utilizado por
+el pipeline. Cada fila representa un archivo de imagen original. Los registros excluidos
+durante el control técnico se conservan en el manifest para mantener trazabilidad sobre
+las decisiones de inclusión y exclusión.
+
+| Columna | Descripción |
+|---|---|
+| `patient_id` | Identificador del paciente al que pertenece la imagen. |
+| `center` | Centro de procedencia del paciente: `BEH` o `TAL`. |
+| `relative_path` | Ruta relativa del archivo respecto al directorio de imágenes BEHSOF. |
+| `filename` | Nombre del archivo de imagen. |
+| `extension` | Extensión del archivo. |
+| `fibroscan_s` | Grado de esteatosis `S0–S3` proporcionado por BEHSOF y utilizado como referencia principal para la tarea predictiva. |
+| `target_binary` | Etiqueta binaria utilizada por el modelo: `0 = S0/S1` y `1 = S2/S3`. |
+| `steatosis_stage` | Grado de esteatosis asociado a la evaluación experta incluida originalmente en BEHSOF. Se conserva como metadato y no constituye el target principal. |
+| `fibroscan_f` | Grado de fibrosis proporcionado por BEHSOF. Se conserva como metadato y no se utiliza como entrada del modelo. |
+| `cap_score` | Valor CAP disponible en los metadatos del dataset. Se conserva con fines de trazabilidad y análisis, pero no se utiliza como feature del CNN. |
+| `e_score` | Valor de elastografía disponible en los metadatos. Se conserva como información auxiliar y no se utiliza como feature del CNN. |
+| `qc_label` | Etiqueta resumida del control técnico: `V` = utilizable, `D` = dual-panel, `L` = baja información visual, `X` = no corresponde a una ecografía B-mode utilizable. |
+| `qc_status` | Estado detallado de QC: `INCLUDE`, `EXCLUDE_DUAL_PANEL`, `EXCLUDE_LOW_INFORMATION` o `EXCLUDE_NON_ULTRASOUND`. |
+| `qc_method` | Método mediante el cual se realizó el QC: `automatic_full_plus_visual_sampling` para BEH y `manual_full_review` para TAL. |
+| `include_final` | Indica si la imagen forma parte del conjunto técnicamente utilizable empleado por el pipeline (`True`/`False`). |
+| `exclusion_reason` | Motivo de exclusión técnica cuando `include_final=False`: `dual_panel`, `low_information` o `non_ultrasound`. Permanece vacío para imágenes incluidas. |
+| `included_images_patient` | Número total de imágenes técnicamente incluidas correspondientes al paciente. |
+| `patient_eligible` | Indica si el paciente conserva al menos una imagen utilizable y puede participar en el análisis. |
+| `dataset_role` | Rol metodológico del centro: `development` para BEH y `external_test` para TAL. |
+| `cv_fold` | Fold de validación asignado al paciente BEH (`1–5`). Todas las imágenes de un mismo paciente comparten el mismo fold. Permanece vacío para TAL. |
+| `split` | Campo reservado para una eventual partición fija. Actualmente permanece vacío porque BEH utiliza validación cruzada a nivel de paciente y no un único train/validation split. |
+
+**Notas metodológicas**
+
+- El manifest conserva las 1601 imágenes originales; las exclusiones se representan mediante
+  `include_final`, `qc_status` y `exclusion_reason`, en lugar de eliminar filas.
+- `Fibroscan S` es la fuente de la etiqueta principal; `CAP score`, `E score`,
+  `steatosis_stage` y `fibroscan_f` no se utilizan como entradas del CNN.
+- La validación cruzada se realiza estrictamente a nivel de paciente.
+- TAL permanece fuera de la validación cruzada y de cualquier ajuste basado en rendimiento.
 
 ---
 
